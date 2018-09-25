@@ -3,6 +3,7 @@ package com.example.pc.facebookintegration;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
@@ -11,6 +12,9 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.HttpMethod;
 import com.facebook.Profile;
 import com.facebook.ProfileTracker;
 import com.facebook.appevents.AppEventsLogger;
@@ -24,6 +28,7 @@ import java.util.Iterator;
 public class LoginActivity extends AppCompatActivity {
 
     private static final String EMAIL = "email";
+    private static final String USER_FRIENDS = "user_friends";
     com.facebook.login.widget.LoginButton loginButton;
     CallbackManager callbackManager;
     AccessToken accessToken;
@@ -38,6 +43,7 @@ public class LoginActivity extends AppCompatActivity {
 
         loginButton = (com.facebook.login.widget.LoginButton) findViewById(R.id.login_button);
         loginButton.setReadPermissions(Arrays.asList(EMAIL));
+        loginButton.setReadPermissions(Arrays.asList(USER_FRIENDS));
 
         callbackManager = CallbackManager.Factory.create();
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
@@ -92,6 +98,18 @@ public class LoginActivity extends AppCompatActivity {
                 // App code
                 if (Profile.getCurrentProfile()!=null){
                     Toast.makeText(LoginActivity.this, Profile.getCurrentProfile().getFirstName(), Toast.LENGTH_SHORT).show();
+                    new GraphRequest(
+                            AccessToken.getCurrentAccessToken(),
+                            "/" +  Profile.getCurrentProfile().getId() + "/friends",
+                            null,
+                            HttpMethod.GET,
+                            new GraphRequest.Callback() {
+                                public void onCompleted(GraphResponse response) {
+                                    Log.e("response", "" + response);
+                                    Toast.makeText(LoginActivity.this, "Count " + response, Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                    ).executeAsync();
                 }
             }
         };
